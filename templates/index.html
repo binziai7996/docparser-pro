@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocParser Pro - PDF智能识别转换</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .logo-icon {
+            font-size: 48px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .pricing-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .pricing-box .price {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .pricing-box .unit {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e8ebff;
+        }
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .upload-text {
+            color: #666;
+            font-size: 14px;
+        }
+        .upload-hint {
+            color: #999;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        .format-select {
+            margin-bottom: 20px;
+        }
+        .format-select label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        .format-options {
+            display: flex;
+            gap: 10px;
+        }
+        .format-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .format-option:hover {
+            border-color: #667eea;
+        }
+        .format-option.selected {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+        .format-option .icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .format-option .name {
+            font-size: 14px;
+            color: #333;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .file-info {
+            background: #f8f9ff;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .file-info.show {
+            display: block;
+        }
+        .file-info .filename {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .file-info .filesize {
+            color: #999;
+            font-size: 12px;
+        }
+        .progress {
+            display: none;
+            margin-top: 20px;
+        }
+        .progress.show {
+            display: block;
+        }
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        .result {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0fff4;
+            border: 1px solid #68d391;
+            border-radius: 10px;
+        }
+        .result.show {
+            display: block;
+        }
+        .result.success {
+            background: #f0fff4;
+            border-color: #68d391;
+        }
+        .result.error {
+            background: #fff5f5;
+            border-color: #fc8181;
+        }
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .result.success .result-title {
+            color: #22543d;
+        }
+        .result.error .result-title {
+            color: #c53030;
+        }
+        .result-message {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .features {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+        .features h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .feature-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-size: 13px;
+        }
+        .feature-item .check {
+            color: #48bb78;
+        }
+        #fileInput {
+            display: none;
+        }
+        .download-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #48bb78;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .download-btn:hover {
+            background: #38a169;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">
+                <div class="logo-icon">📄</div>
+            </div>
+            <h1>DocParser Pro</h1>
+            <p class="subtitle">PDF扫描件智能识别转换工具</p>
+            
+            <div class="pricing-box">
+                <div class="price">¥0.25 <span class="unit">/ 页</span></div>
+                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">无需注册，即传即转</div>
+            </div>
+            
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📤</div>
+                <div class="upload-text">点击或拖拽PDF文件到此处</div>
+                <div class="upload-hint">支持扫描件PDF，自动识别文字和表格</div>
+            </div>
+            <input type="file" id="fileInput" accept=".pdf">
+            
+            <div class="file-info" id="fileInfo">
+                <div class="filename" id="filename"></div>
+                <div class="filesize" id="filesize"></div>
+            </div>
+            
+            <div class="format-select">
+                <label>选择输出格式</label>
+                <div class="format-options">
+                    <div class="format-option selected" data-format="excel">
+                        <div class="icon">📊</div>
+                        <div class="name">Excel表格</div>
+                    </div>
+                    <div class="format-option" data-format="word">
+                        <div class="icon">📝</div>
+                        <div class="name">Word文档</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" id="convertBtn" disabled>
+                开始转换
+            </button>
+            
+            <div class="progress" id="progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">正在上传...</div>
+            </div>
+            
+            <div class="result" id="result">
+                <div class="result-title" id="resultTitle"></div>
+                <div class="result-message" id="resultMessage"></div>
+                <a href="#" class="download-btn" id="downloadBtn" style="display: none;">下载文件</a>
+            </div>
+            
+            <div class="features">
+                <h3>✨ 功能特点</h3>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <span class="check">✓</span>
+                        <span>扫描件识别</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="check">✓</span>
+                        <span>表格自动还原</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="check">✓</span>
+                        <span>保留原格式</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="check">✓</span>
+                        <span>阿里云OCR引擎</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const filename = document.getElementById('filename');
+        const filesize = document.getElementById('filesize');
+        const convertBtn = document.getElementById('convertBtn');
+        const formatOptions = document.querySelectorAll('.format-option');
+        const progress = document.getElementById('progress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const result = document.getElementById('result');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultMessage = document.getElementById('resultMessage');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        let selectedFile = null;
+        let selectedFormat = 'excel';
+        let taskId = null;
+        
+        // 格式选择
+        formatOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                formatOptions.forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedFormat = option.dataset.format;
+            });
+        });
+        
+        // 上传区域点击
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        // 文件选择
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        // 拖拽上传
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                alert('请选择PDF文件');
+                return;
+            }
+            
+            selectedFile = file;
+            filename.textContent = file.name;
+            filesize.textContent = formatFileSize(file.size);
+            fileInfo.classList.add('show');
+            convertBtn.disabled = false;
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 开始转换
+        convertBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            
+            convertBtn.disabled = true;
+            progress.classList.add('show');
+            result.classList.remove('show');
+            
+            // 上传文件
+            progressFill.style.width = '30%';
+            progressText.textContent = '正在上传文件...';
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('format', selectedFormat);
+            
+            try {
+                const uploadRes = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const uploadData = await uploadRes.json();
+                
+                if (!uploadData.success) {
+                    throw new Error(uploadData.message);
+                }
+                
+                taskId = uploadData.task_id;
+                
+                progressFill.style.width = '60%';
+                progressText.textContent = `正在转换...共${uploadData.pages}页，费用¥${uploadData.cost.toFixed(2)}`;
+                
+                // 开始转换
+                const convertRes = await fetch(`/api/convert/${taskId}`, {
+                    method: 'POST'
+                });
+                
+                const convertData = await convertRes.json();
+                
+                progressFill.style.width = '100%';
+                
+                if (convertData.success) {
+                    progress.classList.remove('show');
+                    result.classList.add('show', 'success');
+                    result.classList.remove('error');
+                    resultTitle.textContent = '✅ 转换成功！';
+                    resultMessage.textContent = `文件已转换完成，点击下方按钮下载`;
+                    downloadBtn.style.display = 'inline-block';
+                    downloadBtn.href = `/api/download/${taskId}`;
+                    convertBtn.disabled = false;
+                    convertBtn.textContent = '转换下一个文件';
+                } else {
+                    throw new Error(convertData.message);
+                }
+                
+            } catch (error) {
+                progress.classList.remove('show');
+                result.classList.add('show', 'error');
+                result.classList.remove('success');
+                resultTitle.textContent = '❌ 转换失败';
+                resultMessage.textContent = error.message;
+                downloadBtn.style.display = 'none';
+                convertBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
