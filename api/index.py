@@ -52,11 +52,17 @@ def index():
 @app.route('/api/health')
 def health():
     """健康检查"""
+    # 检查环境变量是否加载
+    ak_id = os.environ.get('ALIBABA_CLOUD_ACCESS_KEY_ID', 'NOT_SET')
+    ak_secret = os.environ.get('ALIBABA_CLOUD_ACCESS_KEY_SECRET', 'NOT_SET')
+    
     return jsonify({
         'status': 'ok',
         'time': datetime.now().isoformat(),
         'supabase_connected': bool(SUPABASE_URL and SUPABASE_KEY),
-        'alibaba_configured': bool(ALIBABA_ACCESS_KEY and ALIBABA_SECRET)
+        'alibaba_configured': bool(ALIBABA_ACCESS_KEY and ALIBABA_SECRET),
+        'ak_id_set': ak_id != 'NOT_SET',
+        'ak_id_prefix': ak_id[:10] + '...' if ak_id != 'NOT_SET' else 'NOT_SET'
     })
 
 @app.route('/api/upload', methods=['POST'])
