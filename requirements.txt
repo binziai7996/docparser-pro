@@ -2,7 +2,6 @@ flask==3.0.0
 gunicorn==21.2.0
 PyPDF2==3.0.1
 openpyxl==3.1.2
-alibabacloud_ocr_api20210707==2.0.1
-alibabacloud_tea_openapi==0.3.8
+requests==2.31.0
 python-multipart==0.0.6
 werkzeug==3.0.1

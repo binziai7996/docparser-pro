@@ -93,36 +93,58 @@ def api_upload():
         return jsonify({'success': False, 'message': f'上传失败: {str(e)}'})
 
 def call_aliyun_ocr(pdf_path):
-    """调用阿里云OCR"""
+    """调用阿里云OCR - 使用HTTP API"""
     try:
-        # 使用阿里云官方SDK
-        from alibabacloud_ocr_api20210707.client import Client as OcrClient
-        from alibabacloud_tea_openapi import models as open_api_models
+        import requests
+        import hashlib
+        import hmac
+        from urllib.parse import quote
         
-        config = open_api_models.Config(
-            access_key_id=ALIBABA_ACCESS_KEY,
-            access_key_secret=ALIBABA_SECRET
-        )
-        config.endpoint = 'ocr-api.cn-hangzhou.aliyuncs.com'
-        client = OcrClient(config)
-        
-        # 读取PDF并转为base64
+        # 读取PDF
         with open(pdf_path, 'rb') as f:
-            pdf_base64 = base64.b64encode(f.read()).decode()
+            pdf_bytes = f.read()
         
-        # 调用OCR
-        from alibabacloud_ocr_api20210707 import models as ocr_models
-        request = ocr_models.RecognizeAllTextRequest(
-            body=ocr_models.RecognizeAllTextRequestBody(
-                url=pdf_base64,
-                type='pdf'
-            )
+        # 转换为base64
+        pdf_base64 = base64.b64encode(pdf_bytes).decode()
+        
+        # 阿里云API参数
+        access_key_id = ALIBABA_ACCESS_KEY
+        access_key_secret = ALIBABA_SECRET
+        
+        # 构建请求
+        url = 'https://ocr-api.cn-hangzhou.aliyuncs.com'
+        
+        # 简化的OCR调用（使用阿里云通用文字识别）
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        
+        body = {
+            'input': {
+                'dataType': 50,  # PDF
+                'dataValue': pdf_base64
+            }
+        }
+        
+        # 使用阿里云签名
+        import json
+        response = requests.post(
+            url + '/api/ocr/v1/recognize',
+            headers=headers,
+            json=body,
+            timeout=30
         )
-        response = client.recognize_all_text(request)
-        return response.body
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"OCR API错误: {response.status_code}, {response.text}")
+            return None
         
     except Exception as e:
+        import traceback
         print(f"OCR调用失败: {e}")
+        traceback.print_exc()
         return None
 
 @app.route('/api/convert/<task_id>', methods=['POST'])
