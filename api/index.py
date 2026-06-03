@@ -214,9 +214,11 @@ def api_convert(task_id):
         
     except Exception as e:
         import traceback
-        traceback.print_exc()
+        error_detail = traceback.format_exc()
+        print(f"转换错误详情: {error_detail}")
         task['status'] = 'failed'
-        return jsonify({'success': False, 'message': f'转换失败: {str(e)}'})
+        task['error_detail'] = str(e)
+        return jsonify({'success': False, 'message': f'转换失败: {str(e)}', 'detail': error_detail[:500]})
 
 @app.route('/api/download/<task_id>')
 def api_download(task_id):
