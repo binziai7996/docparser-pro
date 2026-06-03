@@ -93,9 +93,20 @@ def api_upload():
         return jsonify({'success': False, 'message': f'上传失败: {str(e)}'})
 
 def call_aliyun_ocr(pdf_path):
-    """调用阿里云OCR - 使用HTTP API"""
+    """调用阿里云OCR - 使用官方SDK"""
     try:
-        import requests
+        # 使用阿里云官方SDK
+        from alibabacloud_ocr_api20210707.client import Client as OcrClient
+        from alibabacloud_tea_openapi import models as open_api_models
+        from alibabacloud_ocr_api20210707 import models as ocr_models
+        
+        # 配置客户端
+        config = open_api_models.Config(
+            access_key_id=ALIBABA_ACCESS_KEY,
+            access_key_secret=ALIBABA_SECRET
+        )
+        config.endpoint = 'ocr-api.cn-hangzhou.aliyuncs.com'
+        client = OcrClient(config)
         
         # 读取PDF
         with open(pdf_path, 'rb') as f:
@@ -104,36 +115,21 @@ def call_aliyun_ocr(pdf_path):
         # 转换为base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode()
         
-        # 阿里云文档智能API - 使用RecognizeAllText接口
-        url = 'https://ocr-api.cn-hangzhou.aliyuncs.com'
-        
-        headers = {
-            'Content-Type': 'application/json',
-            'x-acs-action': 'RecognizeAllText',
-            'x-acs-version': '2021-07-07'
-        }
-        
-        # 构建请求体
-        body = {
-            'url': pdf_base64,
-            'type': 'PDF'
-        }
-        
-        # 添加签名（简化版，实际需要阿里云签名算法）
-        import json
-        response = requests.post(
-            url,
-            headers=headers,
-            json=body,
-            timeout=30
+        # 构建请求
+        request = ocr_models.RecognizeAllTextRequest(
+            body=ocr_models.RecognizeAllTextRequestBody(
+                url=pdf_base64,
+                type='PDF'
+            )
         )
         
-        if response.status_code == 200:
-            return response.json()
-        else:
-            error_msg = f"OCR API错误: HTTP {response.status_code}, 响应: {response.text[:200]}"
-            print(error_msg)
-            return {'error': error_msg}
+        # 调用API
+        response = client.recognize_all_text(request)
+        
+        return {
+            'success': True,
+            'data': response.body.to_map() if response.body else {}
+        }
         
     except Exception as e:
         import traceback
