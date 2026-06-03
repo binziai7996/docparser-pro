@@ -96,9 +96,6 @@ def call_aliyun_ocr(pdf_path):
     """调用阿里云OCR - 使用HTTP API"""
     try:
         import requests
-        import hashlib
-        import hmac
-        from urllib.parse import quote
         
         # 读取PDF
         with open(pdf_path, 'rb') as f:
@@ -107,29 +104,25 @@ def call_aliyun_ocr(pdf_path):
         # 转换为base64
         pdf_base64 = base64.b64encode(pdf_bytes).decode()
         
-        # 阿里云API参数
-        access_key_id = ALIBABA_ACCESS_KEY
-        access_key_secret = ALIBABA_SECRET
-        
-        # 构建请求
+        # 阿里云文档智能API - 使用RecognizeAllText接口
         url = 'https://ocr-api.cn-hangzhou.aliyuncs.com'
         
-        # 简化的OCR调用（使用阿里云通用文字识别）
         headers = {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-acs-action': 'RecognizeAllText',
+            'x-acs-version': '2021-07-07'
         }
         
+        # 构建请求体
         body = {
-            'input': {
-                'dataType': 50,  # PDF
-                'dataValue': pdf_base64
-            }
+            'url': pdf_base64,
+            'type': 'PDF'
         }
         
-        # 使用阿里云签名
+        # 添加签名（简化版，实际需要阿里云签名算法）
         import json
         response = requests.post(
-            url + '/api/ocr/v1/recognize',
+            url,
             headers=headers,
             json=body,
             timeout=30
@@ -138,14 +131,15 @@ def call_aliyun_ocr(pdf_path):
         if response.status_code == 200:
             return response.json()
         else:
-            print(f"OCR API错误: {response.status_code}, {response.text}")
-            return None
+            error_msg = f"OCR API错误: HTTP {response.status_code}, 响应: {response.text[:200]}"
+            print(error_msg)
+            return {'error': error_msg}
         
     except Exception as e:
         import traceback
-        print(f"OCR调用失败: {e}")
-        traceback.print_exc()
-        return None
+        error_detail = traceback.format_exc()
+        print(f"OCR调用失败: {e}\n{error_detail}")
+        return {'error': str(e), 'traceback': error_detail}
 
 @app.route('/api/convert/<task_id>', methods=['POST'])
 def api_convert(task_id):
@@ -174,7 +168,10 @@ def api_convert(task_id):
         ocr_result = call_aliyun_ocr(tmp_path)
         
         if not ocr_result:
-            return jsonify({'success': False, 'message': 'OCR识别失败'})
+            return jsonify({'success': False, 'message': 'OCR识别失败: 返回结果为空'})
+        
+        if 'error' in ocr_result:
+            return jsonify({'success': False, 'message': f"OCR识别失败: {ocr_result['error']}"})
         
         # 生成简单的Excel（实际应该解析OCR结果）
         import openpyxl
