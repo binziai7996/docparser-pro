@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'core'))
 
 from flask import Flask, render_template, request, jsonify, send_file, Response
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
 # 配置
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
