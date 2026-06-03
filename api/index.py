@@ -25,7 +25,7 @@ SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '')
 
 # 阿里云文档智能AccessKey（从环境变量读取，部署时配置）
 ALIBABA_ACCESS_KEY = os.environ.get('ALIBABA_CLOUD_ACCESS_KEY_ID', '')
-ALIBABA_SECRET = os.environ.get('ALIBABA_CLOUD_ACCESS_KEY_SECRET', '')
+ALIBABA_SECRET = os.environ.get('ALIBABA_CLOUD_ACCESS_KEY_SECRET', '')  # OCR密钥
 
 # 定价
 PRICE_PER_PAGE = 0.25  # 元/页
