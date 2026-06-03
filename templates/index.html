@@ -488,7 +488,11 @@
                     convertBtn.disabled = false;
                     convertBtn.textContent = '转换下一个文件';
                 } else {
-                    throw new Error(convertData.message);
+                    let errorMsg = convertData.message;
+                    if (convertData.detail) {
+                        errorMsg += '\n\n详细错误:\n' + convertData.detail;
+                    }
+                    throw new Error(errorMsg);
                 }
                 
             } catch (error) {
@@ -497,6 +501,8 @@
                 result.classList.remove('success');
                 resultTitle.textContent = '❌ 转换失败';
                 resultMessage.textContent = error.message;
+                resultMessage.style.whiteSpace = 'pre-wrap';
+                resultMessage.style.fontSize = '12px';
                 downloadBtn.style.display = 'none';
                 convertBtn.disabled = false;
             }
