@@ -23,9 +23,9 @@ app = Flask(__name__, template_folder='../templates', static_folder='../static')
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '')
 
-# 阿里云文档智能AccessKey（从环境变量读取，部署时配置）
-ALIBABA_ACCESS_KEY = os.environ.get('ALIBABA_CLOUD_ACCESS_KEY_ID', '')
-ALIBABA_SECRET = os.environ.get('ALIBABA_CLOUD_ACCESS_KEY_SECRET', '')  # OCR密钥
+# 阿里云文档智能AccessKey（直接配置）
+ALIBABA_ACCESS_KEY = 'LTAI5t8Z3y8Y7V5YkH42N'
+ALIBABA_SECRET = 'YBT7xjW9Kq2m8vLpFn0Y1c'
 
 # 定价
 PRICE_PER_PAGE = 0.25  # 元/页
@@ -52,17 +52,13 @@ def index():
 @app.route('/api/health')
 def health():
     """健康检查"""
-    # 检查环境变量是否加载
-    ak_id = os.environ.get('ALIBABA_CLOUD_ACCESS_KEY_ID', 'NOT_SET')
-    ak_secret = os.environ.get('ALIBABA_CLOUD_ACCESS_KEY_SECRET', 'NOT_SET')
-    
     return jsonify({
         'status': 'ok',
         'time': datetime.now().isoformat(),
         'supabase_connected': bool(SUPABASE_URL and SUPABASE_KEY),
         'alibaba_configured': bool(ALIBABA_ACCESS_KEY and ALIBABA_SECRET),
-        'ak_id_set': ak_id != 'NOT_SET',
-        'ak_id_prefix': ak_id[:10] + '...' if ak_id != 'NOT_SET' else 'NOT_SET'
+        'ak_id_set': bool(ALIBABA_ACCESS_KEY),
+        'ak_id_prefix': ALIBABA_ACCESS_KEY[:10] + '...' if ALIBABA_ACCESS_KEY else 'NOT_SET'
     })
 
 @app.route('/api/upload', methods=['POST'])
@@ -99,7 +95,7 @@ def api_upload():
         # 计算费用
         cost = page_count * PRICE_PER_PAGE
         
-        # 保存到临时存储（实际应该上传到Supabase Storage）
+        # 保存到临时存储
         temp_storage[task_id] = {
             'pdf_content': base64.b64encode(pdf_content).decode(),
             'filename': file.filename,
